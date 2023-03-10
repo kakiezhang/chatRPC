@@ -15,6 +15,7 @@ func main() {
 	}
 
 	gs := grpc.NewServer()
+	// reflection.Register(gs)
 	chat.RegisterChatServiceServer(gs, &chat.ChatService{})
 
 	log.Print("serve")
