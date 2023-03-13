@@ -3,9 +3,17 @@ package chat;
 option go_package = "./chat";
 
 service ChatService {
-  rpc SayHello(Message) returns (Message) {}
+  rpc SayHello(SayRequest) returns (SayResponse) {}
 }
 
-message Message {
+// protoc --encode=chat.SayRequest chat.proto < chat.txt > chat.bin
+// protoc --decode=chat.SayRequest chat.proto < chat.bin
+message SayRequest {
   string body = 1;
+  int32 id = 2;
+}
+
+message SayResponse {
+  string body = 1;
+  int32 ts = 2;
 }

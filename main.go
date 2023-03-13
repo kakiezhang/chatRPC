@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -15,7 +16,7 @@ func main() {
 	}
 
 	gs := grpc.NewServer()
-	// reflection.Register(gs)
+	reflection.Register(gs)
 	chat.RegisterChatServiceServer(gs, &chat.ChatService{})
 
 	log.Print("serve")
