@@ -6,8 +6,16 @@ service ChatService {
   rpc SayHello(SayRequest) returns (SayResponse) {}
 }
 
+// inspired by https://medium.com/@nathantnorth/protocol-buffers-text-format-14e0584f70a5
+//
+// Text usually can be encoded and decoded with binary 
 // protoc --encode=chat.SayRequest chat.proto < chat.txt > chat.bin
 // protoc --decode=chat.SayRequest chat.proto < chat.bin
+//
+// Message data can be converted between hex and binary 
+// protoc --encode=chat.SayRequest chat.proto < chat.txt | xxd -p
+// protoc --decode=chat.SayRequest chat.proto < <(echo 0a0b4a61636b202620526f736510c801 | xxd -r -p)
+// 0a0b4a61636b202620526f736510c801 will be shown in the GRPC Message Data when using wireshark tracing
 message SayRequest {
   string body = 1;
   int32 id = 2;

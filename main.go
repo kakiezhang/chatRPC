@@ -19,10 +19,8 @@ func main() {
 	reflection.Register(gs)
 	chat.RegisterChatServiceServer(gs, &chat.ChatService{})
 
-	log.Print("serve")
+	log.Print("chat serving")
 	if err := gs.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %s", err)
 	}
-
-	log.Print("hello")
 }
