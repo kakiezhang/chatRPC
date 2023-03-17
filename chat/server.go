@@ -2,7 +2,9 @@ package chat
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"net/http"
 )
 
 type ChatService struct {
@@ -19,4 +21,9 @@ func (*ChatService) SayHello(ctx context.Context, req *SayRequest) (resp *SayRes
 		Ts:   100001,
 	}
 	return
+}
+
+func SayHi(w http.ResponseWriter, r *http.Request) {
+	log.Printf("req: %+v", r.Header)
+	fmt.Fprintf(w, "%s", "helo")
 }
