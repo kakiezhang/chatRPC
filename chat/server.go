@@ -1,10 +1,16 @@
 package chat
 
 import (
+	"bytes"
 	"context"
+	"encoding/binary"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
+
+	"google.golang.org/protobuf/proto"
 )
 
 type ChatService struct {
@@ -24,6 +30,37 @@ func (*ChatService) SayHello(ctx context.Context, req *SayRequest) (resp *SayRes
 }
 
 func SayHi(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("Content-Type") == "application/json" {
+		fmt.Fprintf(w, "%s", "hello chat")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/grpc+proto")
+	w.Header().Set("Trailer", "grpc-status, grpc-message")
+	w.Header().Add("grpc-status", "0")
+	w.Header().Add("grpc-message", "")
 	log.Printf("req: %+v", r.Header)
-	fmt.Fprintf(w, "%s", "helo")
+
+	resp := &SayResponse{
+		Body: "Hakuku",
+		Ts:   100001,
+	}
+
+	pb, err := proto.Marshal(resp)
+	if err != nil {
+		log.Printf("proto.Marshal err: %+v", err)
+		return
+	}
+
+	prefix := make([]byte, 5)
+	binary.BigEndian.PutUint32(prefix[1:], uint32(len(pb)))
+	body := io.MultiReader(bytes.NewReader(prefix), bytes.NewReader(pb))
+
+	bs, err := ioutil.ReadAll(body)
+	if err != nil {
+		log.Printf("ioutil.ReadAll err: %+v", err)
+		return
+	}
+
+	w.Write(bs)
 }
