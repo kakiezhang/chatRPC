@@ -2,6 +2,7 @@ package chat
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/binary"
 	"fmt"
@@ -35,11 +36,45 @@ func SayHi(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	{
+		pb, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("ioutil.ReadAll err: %+v", err)
+			return
+		}
+		// log.Printf("pb in: %+v", pb)
+		in := &SayRequest{}
+
+		// compress start
+		gr, err := gzip.NewReader(bytes.NewReader(pb[5:]))
+		if err != nil {
+			log.Printf("gzip.NewReader err: %+v", err)
+			return
+		}
+		buf := bytes.Buffer{}
+		_, err = buf.ReadFrom(gr)
+		if err != nil {
+			log.Printf("buf.ReadFrom err: %+v", err)
+			return
+		}
+		result := buf.Bytes()
+		// compress end
+
+		err = proto.Unmarshal(result, in)
+		if err != nil {
+			log.Printf("proto.Unmarshal err: %+v", err)
+			return
+		}
+		log.Printf("in: %+v", in)
+	}
+
+	// response
 	w.Header().Set("Content-Type", "application/grpc+proto")
 	w.Header().Set("Trailer", "grpc-status, grpc-message")
 	w.Header().Add("grpc-status", "0")
 	w.Header().Add("grpc-message", "")
-	log.Printf("req: %+v", r.Header)
+	log.Printf("req: %+v", r)
+	log.Printf("r.Header: %+v", r.Header)
 
 	resp := &SayResponse{
 		Body: "Hakuku",

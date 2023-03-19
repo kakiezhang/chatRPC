@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	// go GrpcServer()
+	go GrpcServer()
 	go HttpServer()
 	select {}
 }
@@ -25,7 +25,7 @@ func GrpcServer() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	gs := grpc.NewServer()
+	gs := grpc.NewServer(grpc.RPCDecompressor(grpc.NewGZIPDecompressor()))
 	reflection.Register(gs)
 	chat.RegisterChatServiceServer(gs, &chat.ChatService{})
 
