@@ -172,7 +172,28 @@ header grpc message: [%s]
 		return
 	}
 
-	err = proto.Unmarshal(pb[5:], resp)
+	// if ungzip
+	if true {
+		gr, err := gzip.NewReader(bytes.NewReader(pb[5:]))
+		if err != nil {
+			// log.Printf("gzip.NewReader err: %+v", err)
+			return nil, err
+		}
+
+		buf := bytes.Buffer{}
+		_, err = buf.ReadFrom(gr)
+		if err != nil {
+			// log.Printf("buf.ReadFrom err: %+v", err)
+			return nil, err
+		}
+		b := buf.Bytes()
+
+		log.Println("hehehehe")
+
+		err = proto.Unmarshal(b, resp)
+	} else {
+		err = proto.Unmarshal(pb[5:], resp)
+	}
 
 	return
 }

@@ -25,5 +25,7 @@ func GrpcSay(ctx context.Context) (resp *SayResponse, err error) {
 	}
 	c := NewChatServiceClient(conn)
 	resp, err = c.SayHello(ctx, in)
+
+	// log.Printf("resp: %+v", resp)
 	return
 }

@@ -25,6 +25,7 @@ func GrpcServer() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
+	// gs := grpc.NewServer(grpc.RPCDecompressor(grpc.NewGZIPDecompressor()), grpc.RPCCompressor(grpc.NewGZIPCompressor()))
 	gs := grpc.NewServer(grpc.RPCDecompressor(grpc.NewGZIPDecompressor()))
 	reflection.Register(gs)
 	chat.RegisterChatServiceServer(gs, &chat.ChatService{})

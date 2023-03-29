@@ -37,6 +37,14 @@ func SayHi(w http.ResponseWriter, r *http.Request) {
 	}
 
 	{
+		prefix := make([]byte, 1)
+		r.Body.Read(prefix)
+		log.Printf("in prefix: %+v", prefix)
+
+		msglen := make([]byte, 4)
+		r.Body.Read(msglen)
+		log.Printf("in msglen: %+v", msglen)
+
 		pb, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Printf("ioutil.ReadAll err: %+v", err)
@@ -46,7 +54,7 @@ func SayHi(w http.ResponseWriter, r *http.Request) {
 		in := &SayRequest{}
 
 		// compress start
-		gr, err := gzip.NewReader(bytes.NewReader(pb[5:]))
+		gr, err := gzip.NewReader(bytes.NewReader(pb[:]))
 		if err != nil {
 			log.Printf("gzip.NewReader err: %+v", err)
 			return
@@ -73,6 +81,11 @@ func SayHi(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Trailer", "grpc-status, grpc-message")
 	w.Header().Add("grpc-status", "0")
 	w.Header().Add("grpc-message", "")
+
+	{
+		w.Header().Add("grpc-encoding", "gzip")
+	}
+
 	log.Printf("req: %+v", r)
 	log.Printf("r.Header: %+v", r.Header)
 
@@ -87,8 +100,26 @@ func SayHi(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// if gzip
+	{
+		var r bytes.Buffer
+		gz := gzip.NewWriter(&r)
+		_, err = gz.Write(pb)
+		if err != nil {
+			return
+		}
+		gz.Close()
+		pb = r.Bytes()
+	}
+
 	prefix := make([]byte, 5)
 	binary.BigEndian.PutUint32(prefix[1:], uint32(len(pb)))
+
+	// if gzip
+	{
+		prefix[0] = 1
+	}
+
 	body := io.MultiReader(bytes.NewReader(prefix), bytes.NewReader(pb))
 
 	bs, err := ioutil.ReadAll(body)
